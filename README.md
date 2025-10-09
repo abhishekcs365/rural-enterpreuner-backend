@@ -21,6 +21,12 @@ A comprehensive Node.js/Express backend API for managing rural entrepreneurship 
 - **bcryptjs**: Password hashing
 - **CORS**: Cross-Origin Resource Sharing enabled
 
+## Prerequisites
+
+- **Node.js** (v14 or higher)
+- **MongoDB** (v4.4 or higher)
+- **npm** or **yarn**
+
 ## Installation
 
 1. Clone the repository:
@@ -34,12 +40,30 @@ cd rural-enterpreuner-backend
 npm install
 ```
 
-3. Create a `.env` file in the root directory based on `.env.example`:
+3. Install and start MongoDB:
+   
+   **On Ubuntu/Debian:**
+   ```bash
+   sudo apt-get install mongodb
+   sudo systemctl start mongodb
+   ```
+   
+   **On macOS:**
+   ```bash
+   brew tap mongodb/brew
+   brew install mongodb-community
+   brew services start mongodb-community
+   ```
+   
+   **On Windows:**
+   Download and install from [MongoDB Download Center](https://www.mongodb.com/try/download/community)
+
+4. Create a `.env` file in the root directory based on `.env.example`:
 ```bash
 cp .env.example .env
 ```
 
-4. Configure environment variables in `.env`:
+5. Configure environment variables in `.env`:
 ```
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/rural-entrepreneur
@@ -47,6 +71,8 @@ JWT_SECRET=your_jwt_secret_key_here
 JWT_EXPIRE=7d
 NODE_ENV=development
 ```
+
+Note: Make sure to use a strong, unique JWT_SECRET in production.
 
 ## Running the Application
 
