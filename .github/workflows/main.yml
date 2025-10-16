@@ -16,23 +16,52 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read  # Required for pulling from GitHub Container Registry
+    env:
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Login to GitHub Container Registry (ghcr.io) for Docker image access
+      # Requires a repository secret GHCR_TOKEN (GitHub PAT with read:packages scope)
+      - name: Login to GitHub Container Registry
+        if: ${{ env.GHCR_TOKEN != '' }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Deploy using Docker image from GHCR (preferred method if GHCR_TOKEN is available)
       - name: Deploy kv_store via Supabase CLI (Docker)
+        if: ${{ env.GHCR_TOKEN != '' }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          echo "Starting Supabase functions deploy..."
+          echo "Starting Supabase functions deploy using Docker..."
           docker run --rm \
             -e SUPABASE_ACCESS_TOKEN="${SUPABASE_ACCESS_TOKEN}" \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/supabase/cli:latest \
             supabase functions deploy kv_store --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt
+
+      # Fallback: Install Supabase CLI via npm if GHCR_TOKEN is not available
+      - name: Install Supabase CLI via npm (fallback)
+        if: ${{ env.GHCR_TOKEN == '' }}
+        run: |
+          echo "GHCR_TOKEN not available, installing Supabase CLI via npm..."
+          npm install -g supabase
+
+      # Deploy using npm-installed CLI (fallback method)
+      - name: Deploy kv_store via Supabase CLI (npm)
+        if: ${{ env.GHCR_TOKEN == '' }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          echo "Starting Supabase functions deploy using npm-installed CLI..."
+          supabase functions deploy kv_store --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt
 
       - name: Optionally run SQL (if requested)
         if: ${{ github.event.inputs.run_sql == 'yes' }}
