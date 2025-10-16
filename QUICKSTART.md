@@ -126,7 +126,7 @@ curl -X POST http://localhost:5000/api/auth/login \
   }'
 ```
 
-Save the `token` from the response!
+Save the `accessToken` from the response!
 
 **Test 5: Create a Business (Protected Route)**
 ```bash
@@ -260,7 +260,7 @@ mongosh rural-entrepreneur --eval "db.dropDatabase()"
 ### Using Postman
 1. Import curl commands from `API_EXAMPLES.md`
 2. Set `{{baseUrl}}` variable to `http://localhost:5000`
-3. Set `{{token}}` variable after login
+3. Set `{{accessToken}}` variable after login
 
 ### Using Thunder Client (VS Code)
 1. Install Thunder Client extension

@@ -43,7 +43,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 {
   "success": true,
   "message": "Login successful",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "id": "...",
     "name": "John Doe",
@@ -198,7 +198,7 @@ Available user roles:
 
 ## Tips
 
-1. **Save the JWT Token**: After login, save the token from the response and use it in the `Authorization: Bearer TOKEN` header for authenticated requests.
+1. **Save the JWT Token**: After login, save the `accessToken` from the response and use it in the `Authorization: Bearer TOKEN` header for authenticated requests.
 
 2. **Replace Placeholders**: 
    - Replace `YOUR_JWT_TOKEN` with actual JWT token from login
