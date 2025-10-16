@@ -22,7 +22,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Supabase CLI
+<<<<<<< HEAD
         run: npm install -g supabase
+=======
+        run: |
+          wget https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz
+          tar -xzf supabase_linux_amd64.tar.gz
+          sudo mv supabase /usr/local/bin/supabase
+>>>>>>> 433e857 (Deploy Supabase workflow and backend files)
 
       - name: Deploy kv_store via Supabase CLI
         env:

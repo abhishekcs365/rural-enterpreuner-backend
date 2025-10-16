@@ -12,3 +12,56 @@
     X-Content-Type-Options = "nosniff"
 
 # Place Netlify environment vars in [context.production.environment] if needed
+
+name: Deploy Supabase functions
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_sql:
+        description: 'Set to "yes" to run SQL after functions deploy (requires POSTGRES_CONNECTION_STRING secret)'
+        required: false
+        default: 'no'
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy kv_store function
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy kv_store via Supabase CLI (Docker)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          echo "Starting Supabase functions deploy..."
+          docker run --rm \
+            -e SUPABASE_ACCESS_TOKEN="${SUPABASE_ACCESS_TOKEN}" \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -w /workspace \
+            ghcr.io/supabase/cli:latest \
+            supabase functions deploy kv_store --project-ref "${SUPABASE_PROJECT_REF}" --no-verify-jwt
+
+      - name: Optionally run SQL (if requested)
+        if: ${{ github.event.inputs.run_sql == 'yes' }}
+        env:
+          POSTGRES_CONNECTION_STRING: ${{ secrets.POSTGRES_CONNECTION_STRING }}
+        run: |
+          if [ -z "${POSTGRES_CONNECTION_STRING}" ]; then
+            echo "POSTGRES_CONNECTION_STRING secret not set. Aborting SQL step.";
+            exit 1;
+          fi
+          echo "POSTGRES_CONNECTION_STRING provided; applying SQL schema..."
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          PGPASSWORD="$(echo $POSTGRES_CONNECTION_STRING | sed -E 's#.*://[^:]+:([^@]+)@.*#\1#')" \
+            psql "$POSTGRES_CONNECTION_STRING" -v ON_ERROR_STOP=1 -f src/supabase-setup.sql
+
+      - name: Done
+        run: echo "Supabase functions deploy job finished (check action logs)."
